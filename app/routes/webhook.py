@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form
 from fastapi.responses import Response
 import re
+from app.services.ai_services import analyze_instagram_link
 
 router = APIRouter()
 
@@ -19,7 +20,9 @@ async def receive_message(
     if match:
         link = match.group(0)
         print("Instagram Link detected", link)
-        reply = "Instagram link detected! Saving it..."
+
+        ai_result = analyze_instagram_link(link)
+        reply = f"Saved!\n\n{ai_result}"
     else:
         reply = "Please send a valid Instagram Link."
 
