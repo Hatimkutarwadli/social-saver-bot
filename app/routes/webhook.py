@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, HTTPException
+from app.database.db import collection
 from fastapi.responses import Response
 import re
 
@@ -40,3 +41,12 @@ async def receive_message(
     """
 
     return Response(content=twiml, media_type="application/xml")
+
+@router.get('/links')
+async def get_links():
+    try:
+        data = list(collection.find({}, {"_id": 0}))
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
