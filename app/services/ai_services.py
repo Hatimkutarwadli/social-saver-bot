@@ -1,48 +1,74 @@
 import os
-import google.generativeai as genai
+import requests
+from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-
-from playwright.async_api import sync_playwright
-
-def extract_instagram_caption(url: str):
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-
-        page.goto(url, timeout=60000)
-        
-        page.wait_for_timeout(3000)
-
-        spans = page.locator('span').all_text_contents()
-
-        browser.close()
-
-        text = " ".join(spans)
-
-        return text
-
+import google.generativeai as genai
 
 load_dotenv()
 
-api_key = os.getenv('GEMINI_API_KEY')
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash")
 
-genai.configure(api_key=api_key)
+def get_shortcode(url: str):
+    url = url.split("?")[0]
+    parts = url.strip("/").split("/")
+    return parts[-1]
 
-model = genai.GenerativeModel('gemini-2.5-flash')
+def extract_instagram_caption(url: str):
+    try:
+        shortcode = get_shortcode(url)
 
-def analyze_instagram_link(link):
+        embed_url = f"https://www.instagram.com/p/{shortcode}/embed/captioned/"
+
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+
+        response = requests.get(embed_url, headers=headers)
+
+        if response.status_code != 200:
+            print("Embed fetch failed:", response.status_code)
+            return None
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        caption_div = soup.find("div", class_="Caption")
+
+        if caption_div:
+            caption = caption_div.get_text(strip=True)
+            print("Extracted Caption:", caption)
+            return caption
+
+        print("Caption div not found")
+        return None
+
+    except Exception as e:
+        print("Extraction error:", e)
+        return None
+
+def analyze_caption(text: str):
+
     prompt = f"""
-    Analyze this Instagram link: {link}
+    You are categorizing Instagram content.
 
-    1. Guess the most likely category from:
-       Fitness, Coding, Food, Travel, Design, Business, Other
+    Caption:
+    {text}
 
-    2. Write a short 1 sentence summary.
+    Classify into ONE of these categories ONLY:
+    Fitness, Coding, Food, Travel, Design, Business, Entertainment, Education, Lifestyle,
+    Sports, Art, Music, Finance, Nature.
 
-    Respond strictly in this format:
+    Also detect emotional tone:
+    Motivational, Informative, Funny, Promotional, Serious, Inspirational
 
-    Category: <category>
-    Summary: <summary>
+    Pick the closest category even if not perfect.
+
+    Then write a short 1 sentence summary.
+
+    Respond EXACTLY in this format:
+
+    Category: <one category from list>
+    Summary: <short summary>
     """
 
     response = model.generate_content(prompt)

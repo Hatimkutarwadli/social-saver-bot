@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Form
 from fastapi.responses import Response
 import re
-from app.services.ai_services import analyze_instagram_link
+
+from app.services.ai_services import analyze_caption, extract_instagram_caption
 from app.database.db import save_link
 
 router = APIRouter()
@@ -20,13 +21,17 @@ async def receive_message(
 
     if match:
         link = match.group(0)
-        print("Instagram Link detected", link)
 
-        ai_result = analyze_instagram_link(link)
-        save_link(From, link, ai_result)
-        reply = f"Saved!\n\n{ai_result}"
-    else:
-        reply = "Please send a valid Instagram Link."
+        caption = extract_instagram_caption(link)
+
+        if not caption:
+            reply = "Could not extract caption. Make sure post is public"
+        else:
+            ai_result = analyze_caption(caption)
+            
+            save_link(From, link, ai_result)
+
+            reply = f"Saved!\n\n{ai_result}"
 
     twiml = f"""
     <Response>
