@@ -2,6 +2,26 @@ import os
 import google.generativeai as genai
 from dotenv import load_dotenv
 
+from playwright.async_api import sync_playwright
+
+def extract_instagram_caption(url: str):
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        page.goto(url, timeout=60000)
+        
+        page.wait_for_timeout(3000)
+
+        spans = page.locator('span').all_text_contents()
+
+        browser.close()
+
+        text = " ".join(spans)
+
+        return text
+
+
 load_dotenv()
 
 api_key = os.getenv('GEMINI_API_KEY')
