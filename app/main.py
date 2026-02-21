@@ -1,6 +1,8 @@
 import asyncio
 import sys
 
+from fastapi.middleware.cors import CORSMiddleware
+
 if sys.platform.startswith('win'):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
@@ -14,6 +16,14 @@ load_dotenv()
 app = FastAPI()
 
 app.include_router(webhook_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 @app.get('/')
 def home():

@@ -5,16 +5,28 @@ function App() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+  const fetchLinks = () => {
     fetch("http://localhost:8000/links")
       .then((res) => res.json())
       .then((data) => setLinks(data));
-  }, []);
+  };
+
+  fetchLinks(); // initial load
+
+  const interval = setInterval(fetchLinks, 5000); // refresh every 5 sec
+
+  return () => clearInterval(interval);
+}, []);
 
   const extractCategory = (text) => {
-    if (!text) return "Other";
-    const match = text.match(/Category:\s*(.*)/);
-    return match ? match[1] : "Other";
-  };
+  if (!text) return "Other";
+
+  const match = text.match(/Category:\s*(.*)/);
+
+  if (match) return match[1].trim();
+
+  return "Uncategorized";
+};
 
   const filteredLinks = links.filter(
     (item) =>
