@@ -6,11 +6,16 @@ export default function Login({ setUserData }) {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/login", {
-        phone
+      const res = await fetch("http://localhost:8000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ phone })
       });
 
-      setUserData(res.data);
+      const data = await res.json();
+      setUserData(data);
 
     } catch (err) {
       alert("Login failed");
