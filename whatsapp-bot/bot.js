@@ -8,7 +8,7 @@ console.log("Starting WhatsApp Bot...");
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
-    headless: false,
+    headless: true, // Required for server deployment
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   },
 });
@@ -16,13 +16,28 @@ const client = new Client({
 const app = express();
 app.use(express.json());
 
+// Load backend URL from environment
+const BACKEND_URL = process.env.BACKEND_URL || "http://127.0.0.1:8000";
+
+
+// ==============================
+// Health Check (For Render)
+// ==============================
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", whatsapp: client.info ? "ready" : "initializing" });
+});
+
+app.get("/", (req, res) => {
+  res.send("Social Saver WhatsApp Bot is Running.");
+});
+
 
 // ==============================
 // QR + Ready
 // ==============================
 
 client.on("qr", (qr) => {
-  console.log("QR RECEIVED");
+  console.log("QR RECEIVED. Scan this in the Render logs!");
   qrcode.generate(qr, { small: true });
 });
 
@@ -100,7 +115,7 @@ client.on("message", async (message) => {
     const phoneNumber = contact.number;
 
     const response = await axios.post(
-      "http://127.0.0.1:8000/webhook",
+      `${BACKEND_URL}/webhook`,
       {
         message: message.body,
         from_user: phoneNumber,
@@ -120,8 +135,10 @@ client.on("message", async (message) => {
 // Start OTP Server
 // ==============================
 
-app.listen(3001, () => {
-  console.log("Bot OTP server running on port 3001");
+const PORT = process.env.PORT || 3001;
+
+app.listen(PORT, () => {
+  console.log(`Bot OTP server running on port ${PORT}`);
 });
 
 client.initialize();

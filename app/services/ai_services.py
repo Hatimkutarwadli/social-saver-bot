@@ -7,7 +7,7 @@ import google.generativeai as genai
 load_dotenv()
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash-lite")
 
 
 # ---------------------------
@@ -76,10 +76,16 @@ def analyze_caption(text: str):
 
     Then write a short 1 sentence summary.
 
+    In the summary, add 1-2 emojis which are relatable and bold the important words, and 
+    the bold words should look clean and no asterisks should be visible.
+
     Respond EXACTLY in this format:
 
     Category: <one category from list>
-    Summary: <short summary>
+
+    Summary: <short summary> 
+
+    It is Saved Now!! 🥳
     """
 
     response = model.generate_content(prompt)

@@ -43,7 +43,7 @@ const getCategory = (result) => {
   return "Uncategorized";
 };
 
-export default function Dashboard({ userData, logout, refresh }) {
+export default function Dashboard({ userData, logout, refresh, baseUrl }) {
   if (!userData) return null;
 
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -60,7 +60,7 @@ export default function Dashboard({ userData, logout, refresh }) {
   const deleteLink = async (id) => {
     if (!confirm("Are you sure you want to delete this reel?")) return;
     try {
-      await fetch(`http://127.0.0.1:8000/delete-link/${id}`, {
+      await fetch(`${baseUrl}/delete-link/${id}`, {
         method: "DELETE"
       });
       refresh();

@@ -4,14 +4,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.database.db import links_collection
 from collections import defaultdict
-from datetime import datetime, timedelta
 from bson.objectid import ObjectId
 
 router = APIRouter()
 
 # Temporary in-memory OTP store
 otp_store = {}
-
 
 # ==============================
 # Schemas
@@ -39,19 +37,18 @@ async def send_otp(data: PhoneSchema):
         raise HTTPException(status_code=400, detail="Invalid phone number")
 
     otp = str(random.randint(100000, 999999))
-
     otp_store[phone] = otp
 
     print(f"Generated OTP for {phone}: {otp}")
 
-    # Send OTP through WhatsApp bot
+    # Use BOT_URL from environment or fallback to localhost
+    bot_url = os.getenv("BOT_URL", "http://127.0.0.1:3001")
+
     try:
         requests.post(
-            "http://127.0.0.1:3001/send-otp",
-            json={
-                "phone": phone,
-                "otp": otp
-            }
+            f"{bot_url}/send-otp",
+            json={"phone": phone, "otp": otp},
+            timeout=5
         )
     except Exception as e:
         print("Failed to send OTP via bot:", e)
@@ -61,11 +58,11 @@ async def send_otp(data: PhoneSchema):
 
 
 # ==============================
-# Helpers
+# Safe User Data Fetch
 # ==============================
 
 def get_user_data(phone: str):
-    # Fetch user links
+
     user_links = list(
         links_collection.find({"user": phone})
     )
@@ -73,16 +70,26 @@ def get_user_data(phone: str):
     grouped = defaultdict(list)
 
     for link in user_links:
-        category = "Other"
-        if "Category:" in link["ai_result"]:
-            category = link["ai_result"].split("\n")[0].replace("Category: ", "").strip()
+
+        ai_result = link.get("ai_result")
+
+        if not ai_result:
+            category = "Other"
+            ai_result = "Category: Other\nSummary: Missing AI result."
+        elif "Category:" in ai_result:
+            category = ai_result.split("\n")[0].replace("Category: ", "").strip()
+        else:
+            category = "Other"
+
         link["_id"] = str(link["_id"])
+        link["ai_result"] = ai_result
+
         grouped[category].append(link)
 
     return {
         "phone": phone,
         "total_links": len(user_links),
-        "categories": grouped
+        "categories": dict(grouped)
     }
 
 
@@ -101,13 +108,13 @@ async def verify_otp(data: VerifySchema):
     if otp_store[phone] != data.otp:
         raise HTTPException(status_code=401, detail="Invalid OTP")
 
-    # Remove OTP after successful verification
     del otp_store[phone]
 
     return get_user_data(phone)
 
+
 # ==============================
-# Session Login
+# Direct Login (optional)
 # ==============================
 
 @router.post("/login")
@@ -119,6 +126,11 @@ async def login(data: PhoneSchema):
         raise HTTPException(status_code=400, detail="Invalid phone number")
 
     return get_user_data(phone)
+
+
+# ==============================
+# Delete Link
+# ==============================
 
 @router.delete("/delete-link/{link_id}")
 async def delete_link(link_id: str):

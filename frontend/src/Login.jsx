@@ -7,8 +7,8 @@ export default function Login({ setUserData }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // You can change this to your production URL when ready
-  const BASE_URL = "http://127.0.0.1:8000";
+  // Use environment variable for production, fallback to localhost
+  const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
   const sendOtp = async () => {
     if (!phone.trim()) {
