@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.database.db import links_collection
 from collections import defaultdict
+from datetime import datetime, timedelta
+from bson.objectid import ObjectId
 
 router = APIRouter()
 
@@ -78,7 +80,7 @@ async def verify_otp(data: VerifySchema):
 
     # Fetch user links
     user_links = list(
-        links_collection.find({"user": phone}, {"_id": 0})
+        links_collection.find({"user": phone})
     )
 
     grouped = defaultdict(list)
@@ -87,6 +89,7 @@ async def verify_otp(data: VerifySchema):
         category = "Other"
         if "Category:" in link["ai_result"]:
             category = link["ai_result"].split("\n")[0].replace("Category: ", "").strip()
+        link["_id"] = str(link["_id"])
         grouped[category].append(link)
 
     return {
@@ -94,3 +97,13 @@ async def verify_otp(data: VerifySchema):
         "total_links": len(user_links),
         "categories": grouped
     }
+
+@router.delete("/delete-link/{link_id}")
+async def delete_link(link_id: str):
+
+    result = links_collection.delete_one({"_id": ObjectId(link_id)})
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Link not found")
+
+    return {"message": "Deleted successfully"}
