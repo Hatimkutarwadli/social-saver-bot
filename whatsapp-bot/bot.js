@@ -2,6 +2,7 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 const qrcode = require("qrcode-terminal");
 const axios = require("axios");
 const express = require("express");
+const puppeteer = require("puppeteer");
 
 console.log("Starting WhatsApp Bot...");
 
@@ -10,6 +11,7 @@ const client = new Client({
   puppeteer: {
     headless: true, // Required for server deployment
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath: puppeteer.executablePath(),
   },
 });
 

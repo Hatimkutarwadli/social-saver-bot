@@ -10,9 +10,10 @@ npm install
 # Depending on the specific Render environment, you might need to use a Dockerfile 
 # or a specialized build script like this.
 
-echo "Installing Chrome dependencies..."
-# This part is illustrative - Render's "Web Service" (Node) might need a Dockerfile
-# for full Puppeteer support, but we can try the direct approach first.
+echo "Installing dependencies..."
+npm install
 
-# If we were on Ubuntu/Debian:
-# apt-get update && apt-get install -y libnss3 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 libpangocairo-1.0-0 libcups2
+echo "Installing Chrome for Puppeteer..."
+# Setting cache dir so it's predictable
+export PUPPETEER_CACHE_DIR=/opt/render/project/src/whatsapp-bot/.cache/puppeteer
+npx puppeteer browsers install chrome
