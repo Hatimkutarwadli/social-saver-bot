@@ -13,7 +13,6 @@ npm install
 echo "Installing dependencies..."
 npm install
 
-echo "Installing Chrome for Puppeteer..."
-# Setting cache dir so it's predictable
-export PUPPETEER_CACHE_DIR=/opt/render/project/src/whatsapp-bot/.cache/puppeteer
-npx puppeteer browsers install chrome
+echo "Installing Chrome for Puppeteer locally..."
+# Install chrome into a local folder that will be part of the build artifact
+npx puppeteer browsers install chrome --path ./chrome

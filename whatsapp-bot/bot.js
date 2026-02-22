@@ -3,15 +3,47 @@ const qrcode = require("qrcode-terminal");
 const axios = require("axios");
 const express = require("express");
 const puppeteer = require("puppeteer");
+const path = require("path");
+const fs = require("fs");
 
 console.log("Starting WhatsApp Bot...");
+
+const findChrome = () => {
+  const chromeDir = path.join(__dirname, "chrome");
+  if (!fs.existsSync(chromeDir)) return null;
+
+  // Search for the chrome binary recursively in the local folder
+  const findBinary = (dir) => {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const fullPath = path.join(dir, file);
+      if (fs.statSync(fullPath).isDirectory()) {
+        const found = findBinary(fullPath);
+        if (found) return found;
+      } else if (file === "chrome" && fs.accessSync(fullPath, fs.constants.X_OK) === undefined) {
+        return fullPath;
+      }
+    }
+    return null;
+  };
+
+  try {
+    return findBinary(chromeDir);
+  } catch (err) {
+    console.error("Error finding chrome binary:", err);
+    return null;
+  }
+};
+
+const executablePath = findChrome() || puppeteer.executablePath();
+console.log("Using Chrome from:", executablePath);
 
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true, // Required for server deployment
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: puppeteer.executablePath(),
+    executablePath: executablePath,
   },
 });
 
