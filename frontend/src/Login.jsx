@@ -7,8 +7,8 @@ export default function Login({ setUserData }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Use environment variable for production, fallback to localhost
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  // Use environment variable for production, fallback to production URL
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://social-saver-bot-tpyl.onrender.com";
 
   const sendOtp = async () => {
     if (!phone.trim()) {

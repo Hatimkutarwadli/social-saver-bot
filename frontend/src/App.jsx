@@ -3,8 +3,8 @@ import Login from "./Login";
 import Dashboard from "./Dashboard";
 
 export default function App() {
-  // Use environment variable for production, fallback to localhost
-  const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+  // Use environment variable for production, fallback to production URL
+  const BASE_URL = import.meta.env.VITE_API_URL || "https://social-saver-bot-tpyl.onrender.com";
 
   const [userData, setUserData] = useState(null);
   const [phone, setPhone] = useState(null);

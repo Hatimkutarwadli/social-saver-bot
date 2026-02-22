@@ -41,8 +41,8 @@ async def send_otp(data: PhoneSchema):
 
     print(f"Generated OTP for {phone}: {otp}")
 
-    # Use BOT_URL from environment or fallback to localhost
-    bot_url = os.getenv("BOT_URL", "http://127.0.0.1:3001")
+    # Use BOT_URL from environment or fallback to production URL
+    bot_url = os.getenv("BOT_URL", "https://social-saver-bot-1.onrender.com")
 
     try:
         requests.post(
