@@ -40,8 +40,12 @@ console.log("Using Chrome from:", executablePath);
 
 const client = new Client({
   authStrategy: new LocalAuth(),
+  webVersionCache: {
+    type: "remote",
+    remotePath: "https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html",
+  },
   puppeteer: {
-    headless: true, // Required for server deployment
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -49,8 +53,7 @@ const client = new Client({
       "--disable-accelerated-2d-canvas",
       "--no-first-run",
       "--no-zygote",
-      "--single-process", // Shared memory can be an issue in small instances
-      "--disable-gpu"
+      "--disable-gpu",
     ],
     executablePath: executablePath,
   },
