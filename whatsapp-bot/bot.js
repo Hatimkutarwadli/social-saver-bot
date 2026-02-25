@@ -42,7 +42,16 @@ const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true, // Required for server deployment
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--no-first-run",
+      "--no-zygote",
+      "--single-process", // Shared memory can be an issue in small instances
+      "--disable-gpu"
+    ],
     executablePath: executablePath,
   },
 });
